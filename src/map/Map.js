@@ -198,6 +198,15 @@ L.Map = L.Class.extend({
 		return this._layers.hasOwnProperty(id);
 	},
 
+	eachLayer: function (method, context) {
+		for (var i in this._layers) {
+			if (this._layers.hasOwnProperty(i)) {
+				method.call(context, this._layers[i]);
+			}
+		}
+		return this;
+	},
+
 	invalidateSize: function (animate) {
 		var oldSize = this.getSize();
 
@@ -240,6 +249,9 @@ L.Map = L.Class.extend({
 	},
 
 	remove: function () {
+		if (this._loaded) {
+			this.fire('unload');
+		}
 		this._initEvents('off');
 		delete this._container._leaflet;
 		return this;
@@ -688,12 +700,14 @@ L.Map = L.Class.extend({
 		return this.project(latlng, newZoom)._subtract(topLeft);
 	},
 
+	// layer point of the current center
 	_getCenterLayerPoint: function () {
 		return this.containerPointToLayerPoint(this.getSize()._divideBy(2));
 	},
 
-	_getCenterOffset: function (center) {
-		return this.latLngToLayerPoint(center).subtract(this._getCenterLayerPoint());
+	// offset of the specified place to the current center in pixels
+	_getCenterOffset: function (latlng) {
+		return this.latLngToLayerPoint(latlng).subtract(this._getCenterLayerPoint());
 	},
 
 	_limitZoom: function (zoom) {
